@@ -2,7 +2,6 @@
 # Origin resource from MovieLens: http://grouplens.org/datasets/movielens/1m
 import pandas as pd
 
-
 class Channel:
     """
     simple processing for *.dat to *.csv
@@ -25,10 +24,21 @@ class Channel:
                           names=['userID', 'Gender', 'Age', 'Occupation', 'Zip-code'])
         f.to_csv(self.origin_path.format('users.csv'), index=False)
 
+    # 数据过大，会直接OOM跳出
     def _process_rating_data(self, file='ratings.dat'):
-        f = pd.read_table(self.origin_path.format(file), sep='::', engine='python',
+        CHUNK_SIZE = 100000
+        f = pd.read_table(self.origin_path.format(file), sep='::', engine='python', chunksize=CHUNK_SIZE, 
                           names=['UserID', 'MovieID', 'Rating', 'Timestamp'])
-        f.to_csv(self.origin_path.format('ratings.csv'), index=False)
+
+        df = f.get_chunk(CHUNK_SIZE)
+        df.to_csv(self.origin_path.format('ratings.csv'), mode='w', header=True, index=False)
+        while True:
+            try:
+                df = f.get_chunk(CHUNK_SIZE)
+                df.to_csv(self.origin_path.format('ratings.csv'), mode='a', header=False, index=False)
+            except StopIteration:
+                print("Iteration is stopped.")
+                break
 
     def _process_movies_date(self, file='movies.dat'):
         f = pd.read_table(self.origin_path.format(file), sep='::', engine='python',

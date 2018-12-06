@@ -13,7 +13,8 @@ def manage():
     elif arg == 'cf':
         user_cf()
     elif arg == 'lfm':
-        lfm()
+        #lfm()
+        print('lfm耗时过长，暂停使用')
     elif arg == 'prank':
         prank()
     else:
